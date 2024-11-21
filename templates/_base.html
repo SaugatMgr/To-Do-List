@@ -1,0 +1,160 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>To-Do List</title>
+    <link href="{% static 'css/index.css' %}" rel="stylesheet" />
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.min.js"
+      integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/alertify.min.js"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/alertify.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/themes/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">{% block content %} {% endblock content %}</div>
+    <script>
+      $(document).ready(function () {
+        $(document).on("click", ".task-actions button", function () {
+          const button = $(this);
+          const form = button.closest("form");
+          const taskId = form.data("id");
+          const action = button.val();
+
+          const formData = form.serializeArray();
+          formData.push({ name: "action", value: action });
+
+          if (action === "edit") {
+            const newTaskName = prompt("Edit task:");
+            if (!newTaskName) return;
+            formData.push({ name: "task_name", value: newTaskName });
+          }
+
+          $.ajax({
+            url: `tasks/${taskId}/`,
+            type: "POST",
+            data: formData,
+            success: function (response) {
+              if (response.success) {
+                if (action === "complete") {
+                  const taskItem = form.closest("li");
+                  taskItem.toggleClass("completed");
+                  taskItem
+                    .find(".task-actions button")
+                    .css("pointer-events", "none");
+                  alertify.set("notifier", "position", "top-right");
+                  alertify.success(response.message);
+                } else if (action === "edit") {
+                  form
+                    .closest("li")
+                    .find(".task-title")
+                    .text(response.new_name);
+                  alertify.set("notifier", "position", "top-right");
+                  alertify.success(response.message);
+                } else if (action === "delete") {
+                  form.closest("li").remove();
+                  alertify.set("notifier", "position", "top-right");
+                  alertify.error(response.message);
+                }
+              } else {
+                alert("Failed to process the action.");
+              }
+            },
+            error: function (response) {
+              alertify.set("notifier", "position", "top-right");
+              alertify.error(response.responseJSON.message);
+            },
+          });
+        });
+      });
+
+      $(document).ready(function () {
+        $("#addTaskForm").on("submit", function (e) {
+          e.preventDefault();
+          const form = $(this);
+          $.ajax({
+            url: form.attr("action"),
+            type: "POST",
+            data: form.serialize(),
+            success: function (response) {
+              if (response.success) {
+                const newTask = `
+                                <li data-id="${response.task_id}">
+                                    <span class="task-title">${response.task_name}</span>
+                                    <form class="task-form" data-id="${response.task_id}" method="POST">
+                                        {% csrf_token %}
+                                        <div class="task-actions">
+                                            <button type="button" class="complete-btn" name="action" value="complete">✔</button>
+                                            <button type="button" class="edit-btn" name="action" value="edit">✏</button>
+                                            <button type="button" class="delete-btn" name="action" value="delete">✖</button>
+                                        </div>
+                                    </form>
+                                </li>`;
+                $("#taskList").append(newTask);
+                $("#taskInput").val("");
+                alertify.set("notifier", "position", "top-right");
+                alertify.success(response.message);
+              }
+            },
+            error: function (xhr) {
+              alertify.set("notifier", "position", "top-right");
+              alertify.error(xhr.responseJSON.message);
+            },
+          });
+        });
+      });
+
+      // Contact Form
+			$(document).ready(function() {
+				$('#contactForm').on('submit', function(e) {
+					e.preventDefault();
+					let form = $(this);
+			
+					$('.error').text('');
+			
+					$.ajax({
+						type: form.attr('method'),
+						url: form.attr('action'),
+						data: form.serialize(),
+						success: function(response) {
+							alertify.set('notifier', 'position', 'top-right');
+							alertify.success(response.message);
+							form.trigger('reset');
+						},
+						error: function(xhr) {
+							let error = xhr.responseJSON.error;
+							if (error) {
+								alertify.set('notifier','position', 'top-right');
+								alertify.error(error);
+							}
+							else {
+								let errors = xhr.responseJSON.errors;
+								if (errors && Object.keys(errors).length > 0) {
+									for (let field in errors) {
+										let errorMessage = errors[field].join(', ');
+										$(`[data-field="${field}"]`).text(errorMessage);
+									}
+									alertify.set('notifier', 'position', 'top-right');
+									alertify.error("Please correct the errors and try again.");
+								} else {
+									alertify.set('notifier', 'position', 'top-right');
+									alertify.error("An unexpected error occurred. Please try again.");
+								}
+							}
+						}
+					});
+				});
+			});
+    </script>
+  </body>
+</html>

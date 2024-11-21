@@ -1,0 +1,15 @@
+<h1>Contact Us</h1>
+<form id="contactForm" method="POST" action="{% url 'contact' %}">
+    {% csrf_token %}
+    <div class="input-section">
+        <div class="input-group">
+            <input type="text" name="name" placeholder="Your Name" required>
+            <small class="error text-danger" data-field="name"></small>
+            <input type="email" name="email" placeholder="Your Email" required>
+            <small class="error text-danger" data-field="email"></small>
+        </div>
+        <textarea name="message" placeholder="Your Message" required></textarea>
+        <small class="error text-danger" data-field="message"></small>
+        <button type="submit" class="submit-btn">Submit</button>
+    </div>
+</form>
