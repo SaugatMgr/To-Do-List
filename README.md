@@ -16,6 +16,35 @@ To get started with the project, follow these steps:
     ```bash
     pip install -r requirements.txt
     ```
+4. **Create a virtual environment:**
+
+    ```bash
+    python -m venv .venv
+    ```
+
+5. **Activate the virtual environment:**
+
+    On Windows:
+
+    ```bash
+    .\.venv\Scripts\activate
+    ```
+
+    On Unix or MacOS:
+
+    ```bash
+    source .venv/bin/activate
+    ```
+6. **Set up environment variables:**
+
+    Create a `.env` file in the project root directory and add the following variables:
+
+    ```
+    DEBUG=True
+    SECRET_KEY=your_secret_key_here
+    ALLOWED_HOSTS="*"
+    ```
+    For Simplicity, you can just keep SECRET_KEY="my-secret-key"
 
 ## Usage
 
@@ -35,3 +64,8 @@ To get started with the project, follow these steps:
     ```bash
     python manage.py runserver
     ```
+4. **Access the Site**
+    ```
+    127.0.0.1:8000
+    ```
+    Go to this url in the browser
