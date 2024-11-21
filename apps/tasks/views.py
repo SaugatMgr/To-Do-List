@@ -107,7 +107,7 @@ class ContactUsView(View):
                 )
             if form.is_valid():
                 form.save()
-                send_email(form.cleaned_data)
+                #send_email(form.cleaned_data)
                 return JsonResponse(
                     {
                         "success": True,
